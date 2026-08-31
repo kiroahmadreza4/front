@@ -5,6 +5,9 @@ import Dashboard from './pages/dashboard/Dashboard'
 import AssetManagement from './pages/assets/AssetManagement'
 import AddAsset from './pages/assets/AddAsset'
 import AssetGroups from './pages/assets/AssetGroups'
+import DynamicGroups from './pages/assets/DynamicGroups'
+import AssetTags from './pages/assets/AssetTags'
+import AssetDetail from './pages/assets/AssetDetail'
 import CredentialList from './pages/credentials/CredentialList'
 import AssetDiscovery from './pages/discovery/AssetDiscovery'
 import DiscoveryPage from './pages/discovery/DiscoveryPage'
@@ -48,6 +51,9 @@ function App() {
             <Route path="/assets" element={<AssetManagement />} />
             <Route path="/assets/new" element={<AddAsset />} />
             <Route path="/assets/groups" element={<AssetGroups />} />
+            <Route path="/assets/dynamic-groups" element={<DynamicGroups />} />
+            <Route path="/assets/tags" element={<AssetTags />} />
+            <Route path="/assets/:id" element={<AssetDetail />} />
             <Route path="/credentials" element={<CredentialList />} />
             <Route path="/discovery" element={<DiscoveryPage />} />
             <Route path="/discovery/legacy" element={<AssetDiscovery />} />
