@@ -3,8 +3,11 @@ import { ThemeProvider, createTheme } from '@mui/material'
 import AppShell from './components/AppShell'
 import Dashboard from './pages/dashboard/Dashboard'
 import AssetManagement from './pages/assets/AssetManagement'
+import AddAsset from './pages/assets/AddAsset'
+import AssetGroups from './pages/assets/AssetGroups'
 import CredentialList from './pages/credentials/CredentialList'
 import AssetDiscovery from './pages/discovery/AssetDiscovery'
+import DiscoveryPage from './pages/discovery/DiscoveryPage'
 import ChecklistList from './pages/checklist/ChecklistList'
 import Analytics from './pages/analytics/Analytics'
 import Settings from './pages/settings/Settings'
@@ -43,8 +46,11 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/assets" element={<AssetManagement />} />
+            <Route path="/assets/new" element={<AddAsset />} />
+            <Route path="/assets/groups" element={<AssetGroups />} />
             <Route path="/credentials" element={<CredentialList />} />
-            <Route path="/discovery" element={<AssetDiscovery />} />
+            <Route path="/discovery" element={<DiscoveryPage />} />
+            <Route path="/discovery/legacy" element={<AssetDiscovery />} />
             <Route path="/checklist" element={<ChecklistList />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />

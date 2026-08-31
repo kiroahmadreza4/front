@@ -16,6 +16,8 @@ export const navigationGroups = [
     title: 'Inventory',
     items: [
       { path: '/assets', label: 'Assets Management', icon: StorageRoundedIcon },
+      { path: '/assets/new', label: 'Add Asset', icon: StorageRoundedIcon },
+      { path: '/assets/groups', label: 'Asset Groups', icon: StorageRoundedIcon },
       { path: '/discovery', label: 'Discovery', icon: SearchRoundedIcon },
     ],
   },
