@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pnasec_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pnacore@123
+      POSTGRES_DB: pnacoredb
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pnasec_network
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: pnasec_app
+    ports:
+      - "0.0.0.0:8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: pnacore@123
+      DB_NAME: pnacoredb
+      DB_SSLMODE: disable
+      JWT_SECRET: mYsUp3rS3cr3tK3y@2026!GoProject#SecureKey$XyZ
+      JWT_EXPIRE_HOURS: 24
+      TZ: UTC
+    depends_on:
+      - postgres
+    networks:
+      - pnasec_network
+    restart: unless-stopped
+
+  frontend:
+    build: ../pnasec-frontend
+    container_name: pnasec_frontend
+    ports:
+      - "0.0.0.0:3000:5173"
+    environment:
+      VITE_API_URL: http://192.168.0.10:8080   # ← IP سرور
+    networks:
+      - pnasec_network
+    restart: unless-stopped
+
+networks:
+  pnasec_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

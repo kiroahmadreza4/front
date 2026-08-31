@@ -1,0 +1,75 @@
+
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material'
+import { Link, useLocation } from 'react-router-dom'
+import {
+  Dashboard as DashboardIcon,
+  List as ListIcon,
+  VpnKey as VpnKeyIcon,
+  Search as SearchIcon,
+} from '@mui/icons-material'
+
+const Navigation = () => {
+  const location = useLocation()
+
+  return (
+    <AppBar position="sticky" sx={{ mb: 3 }}>
+      <Toolbar>
+        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+          🚀 pnasec
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/dashboard"
+            startIcon={<DashboardIcon />}
+            sx={{
+              borderBottom: location.pathname === '/dashboard' ? '2px solid white' : 'none',
+              borderRadius: 0,
+            }}
+          >
+            داشبورد
+          </Button>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/assets"
+            startIcon={<ListIcon />}
+            sx={{
+              borderBottom: location.pathname === '/assets' ? '2px solid white' : 'none',
+              borderRadius: 0,
+            }}
+          >
+            دارایی‌ها
+          </Button>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/credentials"
+            startIcon={<VpnKeyIcon />}
+            sx={{
+              borderBottom: location.pathname === '/credentials' ? '2px solid white' : 'none',
+              borderRadius: 0,
+            }}
+          >
+            Credential
+          </Button>
+          <Button
+            color="inherit"
+            component={Link}
+            to="/discovery"
+            startIcon={<SearchIcon />}
+            sx={{
+              borderBottom: location.pathname === '/discovery' ? '2px solid white' : 'none',
+              borderRadius: 0,
+            }}
+          >
+            کشف
+          </Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
+  )
+}
+
+export default Navigation
