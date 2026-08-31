@@ -2,6 +2,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,13 +11,13 @@ import (
 
 // Credential مدل اعتبارنامه
 type Credential struct {
-	ID          string `gorm:"type:uuid;primaryKey" json:"id"`
-	Name        string `gorm:"size:255;not null;index" json:"name"`
-	Description string `gorm:"size:1000" json:"description"`
+	ID          string  `gorm:"type:uuid;primaryKey" json:"id"`
+	Name        string  `gorm:"size:255;not null;index" json:"name"`
+	Description string  `gorm:"size:1000" json:"description"`
 
 	// ارتباطات با UUID (اختیاری برای سازگاری با فرانت)
-	CategoryID string `gorm:"type:uuid;index" json:"category_id"`
-	TypeID     string `gorm:"type:uuid;index" json:"type_id"`
+	CategoryID *string `gorm:"type:uuid;index" json:"category_id"`
+	TypeID     *string `gorm:"type:uuid;index" json:"type_id"`
 
 	// اطلاعات اعتبارنامه (حساس)
 	Username    string `gorm:"size:255" json:"username"`
@@ -61,6 +62,12 @@ func (c *Credential) BeforeCreate(tx *gorm.DB) error {
 	}
 	if c.Port == 0 {
 		c.Port = 22
+	}
+	if c.CategoryID != nil && strings.TrimSpace(*c.CategoryID) == "" {
+		c.CategoryID = nil
+	}
+	if c.TypeID != nil && strings.TrimSpace(*c.TypeID) == "" {
+		c.TypeID = nil
 	}
 	return nil
 }

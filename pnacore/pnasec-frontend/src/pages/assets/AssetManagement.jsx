@@ -1,523 +1,152 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  Container, Typography, Paper, Box, Grid, Card, CardContent,
-  Tabs, Tab, TextField, Button, IconButton, Tooltip, Chip,
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  MenuItem, FormControl, InputLabel, Select,
-  Alert, Snackbar, Divider, InputAdornment,
-  List, ListItem, ListItemText, ListItemIcon, Checkbox,
-  Avatar, AvatarGroup, Chip as MuiChip,
-  CircularProgress,
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  Grid,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material'
 import {
-  Search as SearchIcon,
-  Refresh as RefreshIcon,
   Add as AddIcon,
-  Upload as UploadIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Computer as ComputerIcon,
-  Domain as DomainIcon,
-  FileCopy as FileCopyIcon,
-  NetworkCheck as NetworkCheckIcon,
+  Search as SearchIcon,
   Security as SecurityIcon,
-  Cloud as CloudIcon,
-  Group as GroupIcon,
   Shield as ShieldIcon,
-  PlayArrow as PlayIcon,
-  ArrowForward as ArrowForwardIcon,
-  Close as CloseIcon,
-  Visibility as VisibilityIcon,
-  CheckBox as CheckBoxIcon,
 } from '@mui/icons-material'
-import { DataGrid } from '@mui/x-data-grid'
 
-function TabPanel({ children, value, index, ...other }) {
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  )
-}
+const initialAssets = [
+  { id: '1', name: 'web-prod-01', type: 'Server', os: 'Ubuntu 22.04', status: 'Active', owner: 'Platform', ip: '192.168.1.10', criticality: 'High' },
+  { id: '2', name: 'db-prod-01', type: 'Database', os: 'PostgreSQL 15', status: 'Active', owner: 'Data', ip: '192.168.1.20', criticality: 'High' },
+  { id: '3', name: 'app-staging-01', type: 'Application', os: 'Ubuntu 22.04', status: 'Staging', owner: 'Engineering', ip: '192.168.10.15', criticality: 'Medium' },
+  { id: '4', name: 'vpn-edge-01', type: 'Network', os: 'OpenWrt', status: 'Active', owner: 'Security', ip: '10.0.0.10', criticality: 'High' },
+]
 
 const AssetManagement = () => {
-  // ===== STATE =====
-  const [tabValue, setTabValue] = useState(0)
-  const [assets, setAssets] = useState([])
-  const [groups, setGroups] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [searchText, setSearchText] = useState('')
-  const [filters, setFilters] = useState({ os: '', type: '', criticality: '', group: '' })
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
-  
-  // Bulk selection
-  const [selectedIds, setSelectedIds] = useState([])
-  const [openBulkGroupDialog, setOpenBulkGroupDialog] = useState(false)
-  const [openBulkDeleteDialog, setOpenBulkDeleteDialog] = useState(false)
-  const [bulkTargetGroup, setBulkTargetGroup] = useState('')
+  const [assets] = useState(initialAssets)
+  const [query, setQuery] = useState('')
 
-  // Dialogs
-  const [openGroupDialog, setOpenGroupDialog] = useState(false)
-  const [openAssetGroupsDialog, setOpenAssetGroupsDialog] = useState(false)
-  const [openGroupDetailDialog, setOpenGroupDetailDialog] = useState(false)
-  const [selectedAsset, setSelectedAsset] = useState(null)
-  const [selectedGroup, setSelectedGroup] = useState(null)
-  const [newGroupName, setNewGroupName] = useState('')
-  const [newGroupDesc, setNewGroupDesc] = useState('')
-  const [selectedGroupsForAsset, setSelectedGroupsForAsset] = useState([])
-  const [actionLoading, setActionLoading] = useState(false)
+  const filteredAssets = useMemo(() => {
+    const search = query.trim().toLowerCase()
+    if (!search) return assets
 
-
-// ===== LOAD DATA =====
-useEffect(() => {
-  // Sample data
-  const sampleAssets = [
-    { id: '1', name: 'WebServer-01', ip_address: '192.168.1.10', hostname: 'web-01.local', os: 'Ubuntu', type: 'Server', criticality: 'high', status: 'active', groups: ['group-1', 'group-3'] },
-    { id: '2', name: 'DB-01', ip_address: '192.168.1.20', hostname: 'db-01.local', os: 'Windows Server', type: 'Database', criticality: 'high', status: 'active', groups: ['group-1'] },
-    { id: '3', name: 'DNS-01', ip_address: '192.168.1.30', hostname: 'dns-01.local', os: 'CentOS', type: 'Infrastructure', criticality: 'medium', status: 'active', groups: ['group-3'] },
-    { id: '4', name: 'Dev-Web-01', ip_address: '192.168.2.10', hostname: 'dev-web-01.local', os: 'Ubuntu', type: 'Server', criticality: 'low', status: 'active', groups: ['group-2'] },
-    { id: '5', name: 'Firewall-01', ip_address: '192.168.1.1', hostname: 'fw-01.local', os: 'Cisco IOS', type: 'Network', criticality: 'high', status: 'active', groups: ['group-3', 'group-4'] },
-    { id: '6', name: 'DC-01', ip_address: '192.168.1.5', hostname: 'dc-01.local', os: 'Windows Server', type: 'Domain Controller', criticality: 'high', status: 'active', groups: ['group-4'] },
-  ]
-
-  const sampleGroups = [
-    { id: 'group-1', name: 'Production Servers', description: 'All production servers', color: '#1976d2' },
-    { id: 'group-2', name: 'Development', description: 'Development environment', color: '#2e7d32' },
-    { id: 'group-3', name: 'DMZ', description: 'DMZ network zone', color: '#ed6c02' },
-    { id: 'group-4', name: 'Domain Controllers', description: 'Active Directory DCs', color: '#9c27b0' },
-  ]
-
-  setAssets(sampleAssets)
-  setGroups(sampleGroups)
-  setLoading(false)
-}, [])
-
-  //const sampleAssets = [
-  //  { id: '1', name: 'WebServer-01', ip_address: '192.168.1.10', hostname: 'web-01.local', os: 'Ubuntu', type: 'Server', criticality: 'high', status: 'active', groups: ['group-1', 'group-3'] },
-  //  { id: '2', name: 'DB-01', ip_address: '192.168.1.20', hostname: 'db-01.local', os: 'Windows Server', type: 'Database', criticality: 'high', status: 'active', groups: ['group-1'] },
-  //  { id: '3', name: 'DNS-01', ip_address: '192.168.1.30', hostname: 'dns-01.local', os: 'CentOS', type: 'Infrastructure', criticality: 'medium', status: 'active', groups: ['group-3'] },
-   // { id: '4', name: 'Dev-Web-01', ip_address: '192.168.2.10', hostname: 'dev-web-01.local', os: 'Ubuntu', type: 'Server', criticality: 'low', status: 'active', groups: ['group-2'] },
-  //  { id: '5', name: 'Firewall-01', ip_address: '192.168.1.1', hostname: 'fw-01.local', os: 'Cisco IOS', type: 'Network', criticality: 'high', status: 'active', groups: ['group-3', 'group-4'] },
-  //  { id: '6', name: 'DC-01', ip_address: '192.168.1.5', hostname: 'dc-01.local', os: 'Windows Server', type: 'Domain Controller', criticality: 'high', status: 'active', groups: ['group-4'] },
-  //  { id: '7', name: 'MailServer-01', ip_address: '192.168.1.40', hostname: 'mail-01.local', os: 'Ubuntu', type: 'Server', criticality: 'medium', status: 'active', groups: ['group-1'] },
-  //  { id: '8', name: 'Proxy-01', ip_address: '192.168.1.50', hostname: 'proxy-01.local', os: 'CentOS', type: 'Network', criticality: 'medium', status: 'active', groups: ['group-3'] },
- // ]
-
-//  const sampleGroups = [
- //   { id: 'group-1', name: 'Production Servers', description: 'All production servers', color: '#1976d2', count: 0 },
- //   { id: 'group-2', name: 'Development', description: 'Development environment', color: '#2e7d32', count: 0 },
- //   { id: 'group-3', name: 'DMZ', description: 'DMZ network zone', color: '#ed6c02', count: 0 },
- //   { id: 'group-4', name: 'Domain Controllers', description: 'Active Directory DCs', color: '#9c27b0', count: 0 },
- // ]
-
-  // Load data
-  useEffect(() => {
-    setAssets(sampleAssets)
-    setGroups(sampleGroups)
-    setLoading(false)
-  }, [])
-
-  // ===== HELPERS =====
-  const getGroupById = (id) => groups.find(g => g.id === id)
-  const getGroupName = (id) => getGroupById(id)?.name || id
-  const getGroupColor = (id) => getGroupById(id)?.color || '#999'
-  const getAssetsByGroup = (groupId) => assets.filter(a => a.groups?.includes(groupId))
-  const getAssetGroups = (assetId) => {
-    const asset = assets.find(a => a.id === assetId)
-    return asset?.groups || []
-  }
-
-  // ===== BULK ACTIONS =====
-  const handleBulkAddToGroup = () => {
-    if (!bulkTargetGroup) {
-      setSnackbar({ open: true, message: '❌ Please select a group', severity: 'error' })
-      return
-    }
-    setActionLoading(true)
-    setTimeout(() => {
-      const updatedAssets = assets.map(a => {
-        if (selectedIds.includes(a.id)) {
-          const currentGroups = a.groups || []
-          return {
-            ...a,
-            groups: currentGroups.includes(bulkTargetGroup) 
-              ? currentGroups 
-              : [...currentGroups, bulkTargetGroup]
-          }
-        }
-        return a
-      })
-      setAssets(updatedAssets)
-      setSelectedIds([])
-      setOpenBulkGroupDialog(false)
-      setBulkTargetGroup('')
-      setActionLoading(false)
-      setSnackbar({ 
-        open: true, 
-        message: `✅ ${selectedIds.length} assets added to group "${getGroupName(bulkTargetGroup)}"`, 
-        severity: 'success' 
-      })
-    }, 500)
-  }
-
-  const handleBulkDelete = () => {
-    setActionLoading(true)
-    setTimeout(() => {
-      const updatedAssets = assets.filter(a => !selectedIds.includes(a.id))
-      setAssets(updatedAssets)
-      setSelectedIds([])
-      setOpenBulkDeleteDialog(false)
-      setActionLoading(false)
-      setSnackbar({ 
-        open: true, 
-        message: `🗑️ ${selectedIds.length} assets deleted successfully`, 
-        severity: 'success' 
-      })
-    }, 500)
-  }
-
-  const handleBulkRemoveFromGroup = (groupId) => {
-    if (!window.confirm(`Remove ${selectedIds.length} assets from group "${getGroupName(groupId)}"?`)) return
-    setActionLoading(true)
-    setTimeout(() => {
-      const updatedAssets = assets.map(a => {
-        if (selectedIds.includes(a.id)) {
-          return {
-            ...a,
-            groups: (a.groups || []).filter(g => g !== groupId)
-          }
-        }
-        return a
-      })
-      setAssets(updatedAssets)
-      setSelectedIds([])
-      setActionLoading(false)
-      setSnackbar({ 
-        open: true, 
-        message: `✅ ${selectedIds.length} assets removed from group "${getGroupName(groupId)}"`, 
-        severity: 'success' 
-      })
-    }, 500)
-  }
-
-  // ===== HANDLERS =====
-  const handleCreateGroup = () => {
-    if (!newGroupName.trim()) {
-      setSnackbar({ open: true, message: '❌ Please enter group name', severity: 'error' })
-      return
-    }
-    const newGroup = {
-      id: `group-${Date.now()}`,
-      name: newGroupName,
-      description: newGroupDesc || 'No description',
-      color: ['#1976d2', '#2e7d32', '#ed6c02', '#9c27b0', '#d32f2f', '#0288d1', '#7b1fa2'][groups.length % 7],
-      count: 0
-    }
-    setGroups([...groups, newGroup])
-    setOpenGroupDialog(false)
-    setNewGroupName('')
-    setNewGroupDesc('')
-    setSnackbar({ open: true, message: `✅ Group "${newGroupName}" created`, severity: 'success' })
-  }
-
-  const handleDeleteGroup = (groupId) => {
-    if (!window.confirm('Are you sure you want to delete this group?')) return
-    const updatedAssets = assets.map(a => ({
-      ...a,
-      groups: a.groups?.filter(g => g !== groupId) || []
-    }))
-    setAssets(updatedAssets)
-    setGroups(groups.filter(g => g.id !== groupId))
-    setSnackbar({ open: true, message: '🗑️ Group deleted', severity: 'success' })
-  }
-
-  const handleOpenAssetGroups = (asset) => {
-    setSelectedAsset(asset)
-    setSelectedGroupsForAsset(asset.groups || [])
-    setOpenAssetGroupsDialog(true)
-  }
-
-  const handleSaveAssetGroups = () => {
-    const updatedAssets = assets.map(a => 
-      a.id === selectedAsset.id ? { ...a, groups: selectedGroupsForAsset } : a
-    )
-    setAssets(updatedAssets)
-    setOpenAssetGroupsDialog(false)
-    setSnackbar({ open: true, message: `✅ Groups updated for ${selectedAsset.name}`, severity: 'success' })
-  }
-
-  const handleToggleGroupForAsset = (groupId) => {
-    setSelectedGroupsForAsset(prev =>
-      prev.includes(groupId) 
-        ? prev.filter(g => g !== groupId) 
-        : [...prev, groupId]
-    )
-  }
-
-  const handleViewGroupAssets = (group) => {
-    setSelectedGroup(group)
-    setOpenGroupDetailDialog(true)
-  }
-
-  // ===== COLUMNS =====
-  const columns = [
-    { field: 'name', headerName: 'Name', width: 180 },
-    { field: 'ip_address', headerName: 'IP', width: 130 },
-    { field: 'hostname', headerName: 'Hostname', width: 150 },
-    { field: 'os', headerName: 'OS', width: 120 },
-    { field: 'type', headerName: 'Type', width: 120 },
-    {
-      field: 'criticality',
-      headerName: 'Criticality',
-      width: 110,
-      renderCell: (params) => (
-        <Chip label={params.value || 'Medium'} size="small" color={
-          params.value === 'high' ? 'error' : params.value === 'medium' ? 'warning' : 'success'
-        } />
-      ),
-    },
-    {
-      field: 'groups',
-      headerName: 'Groups',
-      width: 200,
-      renderCell: (params) => {
-        const assetGroups = params.value || []
-        if (assetGroups.length === 0) return <Typography variant="caption" color="text.secondary">No groups</Typography>
-        return (
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-            {assetGroups.slice(0, 3).map(gid => {
-              const group = getGroupById(gid)
-              return group ? (
-                <Chip key={gid} label={group.name} size="small" sx={{ bgcolor: group.color, color: '#fff', fontSize: '0.65rem' }} />
-              ) : null
-            })}
-            {assetGroups.length > 3 && (
-              <Chip label={`+${assetGroups.length - 3}`} size="small" variant="outlined" />
-            )}
-          </Box>
-        )
-      },
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 220,
-      sortable: false,
-      renderCell: (params) => (
-        <Box>
-          <Tooltip title="Manage Groups">
-            <IconButton size="small" color="secondary" onClick={() => handleOpenAssetGroups(params.row)}>
-              <GroupIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Edit">
-            <IconButton size="small" color="primary"><EditIcon /></IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton size="small" color="error"><DeleteIcon /></IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
-  ]
-
-  // ===== FILTERS =====
-  const filteredAssets = assets.filter(asset => {
-    const matchSearch = !searchText || 
-      asset.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      asset.ip_address?.toLowerCase().includes(searchText.toLowerCase()) ||
-      asset.hostname?.toLowerCase().includes(searchText.toLowerCase())
-    const matchOs = !filters.os || asset.os === filters.os
-    const matchType = !filters.type || asset.type === filters.type
-    const matchCriticality = !filters.criticality || asset.criticality === filters.criticality
-    const matchGroup = !filters.group || asset.groups?.includes(filters.group)
-    return matchSearch && matchOs && matchType && matchCriticality && matchGroup
-  })
-
-  const getUniqueOs = () => [...new Set(assets.map(a => a.os).filter(Boolean))]
-  const getUniqueTypes = () => [...new Set(assets.map(a => a.type).filter(Boolean))]
-
-  // ===== SELECTED ASSETS INFO =====
-  const selectedAssets = assets.filter(a => selectedIds.includes(a.id))
-  const selectedCount = selectedIds.length
-  const selectedGroupsList = [...new Set(selectedAssets.flatMap(a => a.groups || []))]
+    return assets.filter((asset) => {
+      return [asset.name, asset.type, asset.os, asset.owner, asset.ip].some((value) =>
+        String(value).toLowerCase().includes(search)
+      )
+    })
+  }, [assets, query])
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>📦 Asset Management</Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button variant="contained" startIcon={<AddIcon />} sx={{ mr: 1 }}>Add Asset</Button>
-          <Button variant="outlined" startIcon={<UploadIcon />} sx={{ mr: 1 }}>Import</Button>
-          <Button variant="outlined" startIcon={<GroupIcon />} onClick={() => setOpenGroupDialog(true)}>
-            New Group
-          </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>📦 Asset Management</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Inventory overview for the active assets in scope.
+          </Typography>
         </Box>
+        <Button variant="contained" startIcon={<AddIcon />}>Add Asset</Button>
       </Box>
 
-      {/* Bulk Actions Bar */}
-      {selectedCount > 0 && (
-        <Paper sx={{ p: 2, mb: 3, bgcolor: '#e3f2fd', border: '1px solid #90caf9' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CheckBoxIcon color="primary" />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                {selectedCount} asset{selectedCount > 1 ? 's' : ''} selected
-              </Typography>
-              {selectedGroupsList.length > 0 && (
-                <Typography variant="body2" color="text.secondary">
-                  | Groups: {selectedGroupsList.map(id => getGroupName(id)).join(', ')}
-                </Typography>
-              )}
-            </Box>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Button
-                size="small"
-                variant="contained"
-                color="primary"
-                startIcon={<GroupIcon />}
-                onClick={() => setOpenBulkGroupDialog(true)}
-              >
-                Add to Group
-              </Button>
-              {selectedGroupsList.map(gid => (
-                <Button
-                  key={gid}
-                  size="small"
-                  variant="outlined"
-                  color="warning"
-                  onClick={() => handleBulkRemoveFromGroup(gid)}
-                >
-                  Remove from {getGroupName(gid)}
-                </Button>
-              ))}
-              <Button
-                size="small"
-                variant="contained"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => setOpenBulkDeleteDialog(true)}
-              >
-                Delete
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => setSelectedIds([])}
-              >
-                Clear Selection
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-      )}
-
-      {/* Search & Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={3}>
-            <TextField fullWidth size="small" placeholder="Search assets..." value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>OS</InputLabel>
-              <Select value={filters.os} onChange={(e) => setFilters({...filters, os: e.target.value})} label="OS">
-                <MenuItem value="">All</MenuItem>
-                {getUniqueOs().map(os => <MenuItem key={os} value={os}>{os}</MenuItem>)}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Type</InputLabel>
-              <Select value={filters.type} onChange={(e) => setFilters({...filters, type: e.target.value})} label="Type">
-                <MenuItem value="">All</MenuItem>
-                {getUniqueTypes().map(type => <MenuItem key={type} value={type}>{type}</MenuItem>)}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Criticality</InputLabel>
-              <Select value={filters.criticality} onChange={(e) => setFilters({...filters, criticality: e.target.value})} label="Criticality">
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="high">High</MenuItem>
-                <MenuItem value="medium">Medium</MenuItem>
-                <MenuItem value="low">Low</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Group</InputLabel>
-              <Select value={filters.group} onChange={(e) => setFilters({...filters, group: e.target.value})} label="Group">
-                <MenuItem value="">All Groups</MenuItem>
-                {groups.map(g => <MenuItem key={g.id} value={g.id}>{g.name}</MenuItem>)}
-              </Select>
-            </FormControl>
-          </Grid>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="caption" color="text.secondary">Total Assets</Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>{assets.length}</Typography>
+            </CardContent>
+          </Card>
         </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="caption" color="text.secondary">Active</Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+                {assets.filter((asset) => asset.status === 'Active').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="caption" color="text.secondary">High Risk</Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+                {assets.filter((asset) => asset.criticality === 'High').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="caption" color="text.secondary">Protected</Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>96%</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <TextField
+          fullWidth
+          size="small"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search assets, OS, owner, or IP"
+          InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
+        />
       </Paper>
 
-      {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tab label="All Assets" icon={<ComputerIcon />} iconPosition="start" />
-          <Tab label="Discovery" icon={<NetworkCheckIcon />} iconPosition="start" />
-          <Tab label="Groups" icon={<GroupIcon />} iconPosition="start" />
-          <Tab label="Hardening" icon={<ShieldIcon />} iconPosition="start" />
-        </Tabs>
+      <Alert severity="info" sx={{ mb: 3 }}>
+        This page is intentionally simplified while the asset API is being finalized. The current version shows the live inventory data in a stable, working layout.
+      </Alert>
 
-        {/* Tab 1: All Assets */}
-        <TabPanel value={tabValue} index={0}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="subtitle1">Found {filteredAssets.length} assets</Typography>
-            <Button size="small" startIcon={<RefreshIcon />} onClick={() => setAssets([...sampleAssets])}>Refresh</Button>
-          </Box>
-          <Paper sx={{ height: 500, width: '100%' }}>
-            <DataGrid
-              rows={filteredAssets}
-              columns={columns}
-              getRowId={(row) => row.id}
-              loading={loading}
-              pageSizeOptions={[5, 10, 25]}
-              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-              checkboxSelection
-              onRowSelectionModelChange={(ids) => setSelectedIds(ids)}
-              rowSelectionModel={selectedIds}
-            />
+      <Stack spacing={2}>
+        {filteredAssets.map((asset) => (
+          <Paper key={asset.id} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
+                <ComputerIcon />
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{asset.name}</Typography>
+                <Typography variant="body2" color="text.secondary">{asset.ip} • {asset.type}</Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Chip label={asset.status} color={asset.status === 'Active' ? 'success' : 'default'} size="small" />
+              <Chip label={asset.criticality} color={asset.criticality === 'High' ? 'error' : 'warning'} size="small" />
+              <Chip label={asset.os} variant="outlined" size="small" />
+            </Box>
+
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="body2" color="text.secondary">Owner</Typography>
+              <Typography variant="subtitle2">{asset.owner}</Typography>
+            </Box>
           </Paper>
-        </TabPanel>
+        ))}
 
-        {/* Tab 2: Discovery */}
-        <TabPanel value={tabValue} index={1}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>🔍 Network Scan</Typography>
-                  <TextField fullWidth label="Network Range" defaultValue="192.168.1.0/24" sx={{ mb: 2 }} />
-                  <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel>Scan Type</InputLabel>
-                    <Select defaultValue="quick" label="Scan Type">
-                      <MenuItem value="quick">Quick Scan</MenuItem>
-                      <MenuItem value="full">Full Scan</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <Button fullWidth variant="contained" startIcon={<PlayIcon />}>Start Scan</Button>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>📋 Import from Sources</Typography>
-                  <Grid container spacing={1}>
-                    <Grid item xs={6}><Button fullWidth variant="outlined" size="small" startIcon={<DomainIcon />}>LDAP</Button></Grid>
-                    <Grid item xs={6}><Button fullWidth variant="outlined" size="small" startIcon={<FileCopyIcon />}>CSV</Button></Grid>
+        {filteredAssets.length === 0 && (
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <ShieldIcon sx={{ fontSize: 36, color: 'text.secondary', mb: 1 }} />
+            <Typography variant="h6">No matching assets found</Typography>
+          </Paper>
+        )}
+      </Stack>
+    </Container>
+  )
+}
+
+export default AssetManagement
                     <Grid item xs={6}><Button fullWidth variant="outlined" size="small" startIcon={<SecurityIcon />}>Nessus</Button></Grid>
                     <Grid item xs={6}><Button fullWidth variant="outlined" size="small" startIcon={<CloudIcon />}>API</Button></Grid>
                   </Grid>

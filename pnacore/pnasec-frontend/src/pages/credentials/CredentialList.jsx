@@ -71,6 +71,13 @@ const CredentialList = () => {
         is_active: Boolean(createForm.is_active),
       }
 
+      Object.keys(payload).forEach((key) => {
+        const value = payload[key]
+        if (typeof value === 'string' && value.trim() === '') {
+          delete payload[key]
+        }
+      })
+
       await api.post('/api/v1/credentials/', payload)
       setOpenCreateDialog(false)
       setCreateForm(initialForm)

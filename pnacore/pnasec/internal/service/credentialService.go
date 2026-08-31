@@ -4,6 +4,7 @@ import (
 	"errors"
 	"my-go-second-project/internal/models"
 	"my-go-second-project/internal/repository"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -16,7 +17,22 @@ func NewCredentialService(repo *repository.CredentialRepository) *CredentialServ
 	return &CredentialService{repo: repo}
 }
 
+func sanitizeCredentialUUIDs(credential *models.Credential) {
+	if credential == nil {
+		return
+	}
+
+	if credential.CategoryID != nil && strings.TrimSpace(*credential.CategoryID) == "" {
+		credential.CategoryID = nil
+	}
+	if credential.TypeID != nil && strings.TrimSpace(*credential.TypeID) == "" {
+		credential.TypeID = nil
+	}
+}
+
 func (s *CredentialService) Create(credential *models.Credential) error {
+	sanitizeCredentialUUIDs(credential)
+
 	if credential.Name == "" {
 		return errors.New("name is required")
 	}
@@ -41,6 +57,8 @@ func (s *CredentialService) GetByID(id string) (*models.Credential, error) {
 }
 
 func (s *CredentialService) Update(credential *models.Credential) error {
+	sanitizeCredentialUUIDs(credential)
+
 	if credential.ID == "" {
 		return errors.New("id is required")
 	}
