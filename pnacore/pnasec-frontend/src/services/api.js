@@ -1,9 +1,27 @@
 import axios from 'axios'
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '')
+const resolveApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL
+  if (envUrl) {
+    return envUrl.replace(/\/$/, '')
+  }
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8080'
+    }
+
+    return `http://${host}:8080`
+  }
+
+  return 'http://localhost:8080'
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 const DEFAULT_LOGIN = {
   email: import.meta.env.VITE_API_EMAIL || 'admin@example.com',
-  password: import.meta.env.VITE_API_PASSWORD || 'admin123',
+  password: import.meta.env.VITE_API_PASSWORD || '123',
 }
 
 const api = axios.create({

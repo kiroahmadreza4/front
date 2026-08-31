@@ -6,6 +6,9 @@ import AssetManagement from './pages/assets/AssetManagement'
 import CredentialList from './pages/credentials/CredentialList'
 import AssetDiscovery from './pages/discovery/AssetDiscovery'
 import ChecklistList from './pages/checklist/ChecklistList'
+import Analytics from './pages/analytics/Analytics'
+import Settings from './pages/settings/Settings'
+import AboutUs from './pages/about/AboutUs'
 
 const theme = createTheme({
   palette: {
@@ -43,6 +46,9 @@ function App() {
             <Route path="/credentials" element={<CredentialList />} />
             <Route path="/discovery" element={<AssetDiscovery />} />
             <Route path="/checklist" element={<ChecklistList />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<AboutUs />} />
           </Routes>
         </AppShell>
       </BrowserRouter>

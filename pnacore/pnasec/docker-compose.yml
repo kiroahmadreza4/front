@@ -45,7 +45,8 @@ services:
     ports:
       - "0.0.0.0:3000:5173"
     environment:
-      VITE_API_URL: http://192.168.0.10:8080   # ← IP سرور
+      VITE_API_BASE_URL: http://192.168.0.10:8080   # ← IP سرور
+      VITE_API_URL: http://192.168.0.10:8080
     networks:
       - pnasec_network
     restart: unless-stopped

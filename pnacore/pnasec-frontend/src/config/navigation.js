@@ -3,6 +3,9 @@ import StorageRoundedIcon from '@mui/icons-material/StorageRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded'
 import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded'
+import AnalyticsRoundedIcon from '@mui/icons-material/AnalyticsRounded'
+import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded'
+import InfoRoundedIcon from '@mui/icons-material/InfoRounded'
 
 export const navigationGroups = [
   {
@@ -12,7 +15,7 @@ export const navigationGroups = [
   {
     title: 'Inventory',
     items: [
-      { path: '/assets', label: 'Assets', icon: StorageRoundedIcon },
+      { path: '/assets', label: 'Assets Management', icon: StorageRoundedIcon },
       { path: '/discovery', label: 'Discovery', icon: SearchRoundedIcon },
     ],
   },
@@ -22,7 +25,17 @@ export const navigationGroups = [
   },
   {
     title: 'Compliance',
-    items: [{ path: '/checklist', label: 'Checklists', icon: FactCheckRoundedIcon }],
+    items: [
+      { path: '/checklist', label: 'Compliance Management', icon: FactCheckRoundedIcon },
+      { path: '/analytics', label: 'Analystic', icon: AnalyticsRoundedIcon },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { path: '/settings', label: 'Settings', icon: SettingsRoundedIcon },
+      { path: '/about', label: 'About US', icon: InfoRoundedIcon },
+    ],
   },
 ]
 
