@@ -11,9 +11,9 @@ import (
 
 // Credential مدل اعتبارنامه
 type Credential struct {
-	ID          string  `gorm:"type:uuid;primaryKey" json:"id"`
-	Name        string  `gorm:"size:255;not null;index" json:"name"`
-	Description string  `gorm:"size:1000" json:"description"`
+	ID          string `gorm:"type:uuid;primaryKey" json:"id"`
+	Name        string `gorm:"size:255;not null;index" json:"name"`
+	Description string `gorm:"size:1000" json:"description"`
 
 	// ارتباطات با UUID (اختیاری برای سازگاری با فرانت)
 	CategoryID *string `gorm:"type:uuid;index" json:"category_id"`
